@@ -29,4 +29,14 @@ public class Resume extends Model {
 		this.workExperience = workExperience;
 		this.description = description;
 	}
+	
+	
+	
+	// Static methods
+	public static void deleteResume(Resume resume) {
+		if (resume == null) return;
+		
+		resume.owner.resumes.remove(resume);
+		resume.delete();
+	}
 }

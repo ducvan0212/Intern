@@ -20,6 +20,9 @@ public class JobSeeker extends Model {
 	public String fullName;
 	public Date birthday;
 	
+	@Embedded
+	public ContactInfo contactInfo;
+	
 	@OneToMany(mappedBy="owner", cascade=CascadeType.ALL)
 	public List<Resume> resumes;
 
@@ -34,11 +37,17 @@ public class JobSeeker extends Model {
 		this.resumes = new ArrayList<Resume>();
 	}
 
-	public JobSeeker(String email, String password, String aboutMe, String college, String fullName) {
+	public JobSeeker(String email, 
+			String password, 
+			String aboutMe, 
+			String college, 
+			String fullName,
+			ContactInfo contactInfo) {
 		this(email, password);
 		this.aboutMe = aboutMe;
 		this.college = college;
 		this.fullName = fullName;
+		this.contactInfo = contactInfo;
 	}
 	
 	
@@ -49,6 +58,14 @@ public class JobSeeker extends Model {
 		Resume newResume = new Resume(this, name).save();
 		this.resumes.add(newResume);
 		this.save();
+		return this;
+	}
+	
+	public JobSeeker removeResume(int index) {
+		// The Resume.deleteResume(Resume) will do the remove from list job
+		Resume.deleteResume(this.resumes.get(index));
+		this.save();
+		
 		return this;
 	}
 	

@@ -5,3 +5,33 @@
 #   email: bob@gmail.com
 #   password: secret
 #   fullname: Bob
+
+JobSeeker(steve):
+    email: steve@gmail.com
+    password: jobs
+    aboutMe: I'm Jobs
+    fullName: Steve Jobs
+    college: Bates
+    
+JobSeeker(bob):
+    email: bob@gmail.com
+    password: secret
+    
+Resume(firstResume):
+    name: My First Resume
+    postedAt: 2012-04-01
+    owner: steve
+    
+Resume(secondResume):
+    name: My Second Resume
+    postedAt: 2012-04-04
+    owner: steve
+    
+Employer(tom):
+    email: tom@gmail.com
+    password: password
+    company: abc Corp
+    industry: Software
+    description: We do things
+    contactInfo: 
+        contactEmail: tom@gmail.com

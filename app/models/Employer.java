@@ -20,6 +20,9 @@ public class Employer extends Model {
 	@Lob
 	public String description;
 	
+	@Embedded
+	public ContactInfo contactInfo;
+	
 	@OneToMany(mappedBy="owner", cascade=CascadeType.ALL)
 	public List<Job> jobs;
 	
@@ -34,11 +37,17 @@ public class Employer extends Model {
 		this.jobs = new ArrayList<Job>();
 	}
 	
-	public Employer(String email, String password, String companyName, String industry, String description) {
+	public Employer(String email, 
+			String password, 
+			String companyName, 
+			String industry, 
+			String description,
+			ContactInfo contactInfo) {
 		this(email, password);
 		this.companyName = companyName;
 		this.industry = industry;
 		this.description = description;
+		this.contactInfo = contactInfo;
 	}
 	
 	

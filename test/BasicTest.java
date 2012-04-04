@@ -11,93 +11,58 @@ public class BasicTest extends UnitTest {
 	}
 	
 	@Test
-    public void createAndRetrieveJobSeeker() {
-    	// Create a new job seeker and save it
-    	new JobSeeker("bob@gmail.com", "secret").save();
-    	
-    	// Retrieve the job seeker with e-mail address bob@gmail.com
-    	JobSeeker bob = JobSeeker.find("byEmail", "bob@gmail.com").first();    
-    	
-    	// Test
-    	assertNotNull(bob);
-    	assertEquals(1, JobSeeker.count());
-    	
-    	new JobSeeker("steve@gmail.com", "jobs", "I'm Jobs", "Bates", "Steve Jobs").save();
-    	JobSeeker jobs = JobSeeker.find("byEmail", "steve@gmail.com").first();
-    	assertNotNull(jobs);
-    	assertEquals(jobs.fullName, "Steve Jobs");
-    	assertNotSame(jobs.aboutMe, "Just fun");
-    }
-	
-	@Test
-    public void tryConnectAsJobSeeker() {
-    	// Create a new job seeker and save it
-    	new JobSeeker("bob@gmail.com", "secret").save();
-    	new JobSeeker("steve@gmail.com", "jobs", "I'm Jobs", "Bates", "Steve Jobs").save();
- 
-    	assertEquals(2, JobSeeker.count());
-    	
-    	// Test
-    	assertNotNull(JobSeeker.connect("bob@gmail.com", "secret"));
-    	assertNotNull(JobSeeker.connect("steve@gmail.com", "jobs"));
-    	assertNull(JobSeeker.connect("bob@gmail.com", "badpassword"));
-    	assertNull(JobSeeker.connect("tom@gmail.com", "secret"));
-    }
-    
-	@Test
-	public void createAndRetrieveEmployer() {
-		// Create a new employer and save it
-		new Employer("john@yahoo.com", "confidential").save();
-		
-		// Retrieve the employer with e-mail address "john@yahoo.com"
-		Employer john = Employer.find("byEmail", "john@yahoo.com").first();
-		
-		// Test
-		assertNotNull(john);
-		assertEquals(1, Employer.count());
-	}
-	
-	@Test
-	public void tryConnectAsEmployer() {
-		// Create a new employer and save it
-		new Employer("john@yahoo.com", "confidential").save();
-		
-		assertNotNull(Employer.connect("john@yahoo.com", "confidential"));
-		assertNull(Employer.connect("bob@gmail.com", "secret"));
-	}
-	
-	@Test
-	public void useTheResumeRelation() {
-		// Create a new job seeker and save it
-		JobSeeker bob = new JobSeeker("bob@gmail.com", "secret").save();
-		
-		// Create new resume
-		bob.addResume("My First Resume");
-		bob.addResume("My Second Resume");
+	public void fullTest() {
+		Fixtures.loadModels("data.yml");
 		
 		// Count things
-		assertEquals(1, JobSeeker.count());
+		assertEquals(2, JobSeeker.count());
 		assertEquals(2, Resume.count());
+		assertEquals(1, Employer.count());
+		assertEquals(0, Job.count());
 		
-		// Retrieve Bob's resume
-		Resume firstResume = Resume.find("byOwner", bob).first();
-		assertNotNull(firstResume);
-		assertEquals(firstResume.name, "My First Resume");
-		assertEquals(bob.resumes.get(0).name, "My First Resume");
+		// Try to connect as job seekers
+		JobSeeker bob = JobSeeker.connect("bob@gmail.com", "secret");
+		assertNotNull(bob);
+		JobSeeker steve = JobSeeker.connect("steve@gmail.com", "jobs");
+		assertNotNull(steve);
+		assertNull(JobSeeker.connect("jeff@gmail.com", "badpassword"));
+		assertNull(Employer.connect("bob@gmail.com", "secret"));
 		
-		/* Problem when deleting on the other side, not solved yet
-		// Delete the resume
-		firstResume.delete();
+		// Find all of Steve's resumes
+		List<Resume> steveResumes = Resume.find("owner.email", "steve@gmail.com").fetch();
+		assertEquals(2, steveResumes.size());
+		assertEquals(2, steve.resumes.size());
 		
-		// Check that the resume have been deleted
+		
+		// Find the most recent resume
+		Resume frontResume = Resume.find("order by postedAt desc").first();
+		assertNotNull(frontResume);
+		assertEquals("My Second Resume", frontResume.name);
+		
+		// Post a new resume
+		bob.addResume("My Third Resume");
+		assertEquals(1, bob.resumes.size());
+		assertEquals(3, Resume.count());
+		
+		// Delete steve's 2nd resume (directly)
+		Resume.deleteResume(frontResume);
+		assertEquals(2, Resume.count());
+		assertEquals(1, steve.resumes.size());
+		
+		// Delete steve's latest resume (indirectly)
+		steve.removeResume(0);
+		assertEquals(0, steve.resumes.size());
 		assertEquals(1, Resume.count());
-		*/
 		
-		// Delete the user
-		bob.delete();
+		// Delete a null resume
+		Resume.deleteResume(null);
+		assertEquals(0, steve.resumes.size());
+		assertEquals(1, Resume.count());
 		
-		// Check that all the resume have been deleted
-		assertEquals(0, Resume.count());
-		assertEquals(0, JobSeeker.count());
+		
+		Employer tom = Employer.find("byEmail", "tom@gmail.com").first();
+		assertNotNull(tom);
+		assertEquals(tom.contactInfo.contactEmail, "tom@gmail.com");
+		assertEquals(tom.description, "We do things");
 	}
 }
